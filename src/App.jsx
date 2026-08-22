@@ -5,16 +5,32 @@ import FacultyGrid from './components/FacultyGrid';
 import FacultySearchResult from './components/FacultySearchResult';
 import FacultyDetails from './components/FacultyDetails';
 import EmptyState from './components/EmptyState';
+import LandingPage from './components/LandingPage';
 import LoginPage from './components/LoginPage';
+import AdminLoginPage from './components/AdminLoginPage';
 import { getFacultyList } from './api/facultyAPI';
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentStudent, setCurrentStudent] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [userRole, setUserRole] = useState('student');
   const [facultyList, setFacultyList] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFaculty, setSelectedFaculty] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showStudentLogin, setShowStudentLogin] = useState(false);
+
+  // URL path tracking for dedicated Admin Login (/admin or /admin-login)
+  const [currentPath, setCurrentPath] = useState(window.location.pathname);
+
+  useEffect(() => {
+    const handleLocationChange = () => {
+      setCurrentPath(window.location.pathname);
+    };
+
+    window.addEventListener('popstate', handleLocationChange);
+    return () => window.removeEventListener('popstate', handleLocationChange);
+  }, []);
 
   // Load faculty list from API layer upon login
   useEffect(() => {
@@ -34,7 +50,7 @@ export default function App() {
     }
   }, [isAuthenticated]);
 
-  // Filter faculty members based on search query (case-insensitive search by name)
+  // Filter faculty members based on search query
   const filteredFaculty = useMemo(() => {
     if (!searchQuery || searchQuery.trim() === '') {
       return facultyList;
@@ -48,8 +64,9 @@ export default function App() {
     );
   }, [facultyList, searchQuery]);
 
-  const handleLoginSuccess = (studentData) => {
-    setCurrentStudent(studentData);
+  const handleLoginSuccess = (userData, role = 'student') => {
+    setCurrentUser(userData);
+    setUserRole(role);
     setIsAuthenticated(true);
   };
 
@@ -60,22 +77,44 @@ export default function App() {
 
   const handleLogout = () => {
     setIsAuthenticated(false);
-    setCurrentStudent(null);
+    setCurrentUser(null);
+    setUserRole('student');
     setSelectedFaculty(null);
     setSearchQuery('');
+    setShowStudentLogin(false);
   };
 
-  // 1. FIRST SCREEN: Student Login Page if not authenticated
+  // 1. PRE-LOGIN VIEWS: Landing Page / Student Login / Admin Login (strictly via /admin URL)
   if (!isAuthenticated) {
-    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+    const isAdminRoute = currentPath.startsWith('/admin') || window.location.search.includes('admin=true');
+
+    if (isAdminRoute) {
+      return <AdminLoginPage onLoginSuccess={handleLoginSuccess} />;
+    }
+
+    if (showStudentLogin) {
+      return (
+        <LoginPage
+          onLoginSuccess={handleLoginSuccess}
+          onBackToHome={() => setShowStudentLogin(false)}
+        />
+      );
+    }
+
+    return <LandingPage onOpenStudentLogin={() => setShowStudentLogin(true)} />;
   }
 
   const isSearching = searchQuery.trim() !== '';
 
-  // 2. MAIN SCREEN: Faculty Search / Details View after login
+  // 2. MAIN SCREEN: Faculty Search / Details Dashboard after login
   return (
     <div className="app-container">
-      <Navbar onGoHome={handleGoHome} onLogout={handleLogout} />
+      <Navbar
+        onGoHome={handleGoHome}
+        onLogout={handleLogout}
+        userRole={userRole}
+        currentUser={currentUser}
+      />
 
       <main className="main-content">
         {selectedFaculty ? (
@@ -87,7 +126,6 @@ export default function App() {
         ) : (
           /* Main Search & Grid / Results View */
           <>
-            {/* Instagram-Inspired Search Bar */}
             <SearchBar
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
@@ -99,7 +137,7 @@ export default function App() {
                 Loading CSE faculty directory...
               </div>
             ) : isSearching ? (
-              /* Search Query View: Vertical stack of Horizontal Result Cards */
+              /* Search Query View */
               filteredFaculty.length > 0 ? (
                 <div className="search-results-list">
                   {filteredFaculty.map((faculty) => (
@@ -115,7 +153,7 @@ export default function App() {
                 <EmptyState onReset={() => setSearchQuery('')} />
               )
             ) : (
-              /* Grid View (When Search Query is Empty): Strict 4/3/2/1 Responsive Grid */
+              /* Grid View */
               <FacultyGrid
                 facultyList={filteredFaculty}
                 onSelectFaculty={setSelectedFaculty}
@@ -127,7 +165,7 @@ export default function App() {
 
       <footer className="footer">
         <p className="footer-text">
-          © {new Date().getFullYear()} FindMyFaculty • CSE Academic Directory System
+          © FindMyFaculty • CSE Academic Directory System
         </p>
       </footer>
     </div>

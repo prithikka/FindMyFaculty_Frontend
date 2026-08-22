@@ -18,12 +18,12 @@ export default function SearchBar({ searchQuery, setSearchQuery, resultCount }) 
           <input
             type="text"
             className="search-input"
-            placeholder="Search faculty..."
+            placeholder="Search teachers..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            aria-label="Search faculty members"
+            aria-label="Search teacher members"
           />
           {searchQuery && (
             <button

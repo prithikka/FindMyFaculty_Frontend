@@ -1,24 +1,40 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   ArrowLeft,
   Building2,
-  Mail,
-  Phone,
   MapPin,
+  Navigation,
+  Calendar,
   Clock,
-  BookOpen,
-  User,
-  ExternalLink
+  CheckCircle2,
+  AlertCircle,
+  ChevronDown
 } from 'lucide-react';
 
 export default function FacultyDetails({ faculty, onBack }) {
   if (!faculty) return null;
 
+  const [timetableOpen, setTimetableOpen] = useState(false);
+
+  const directionsList = faculty.directions || [
+    "Enter CSE Academic Block via Main Entrance Lobby.",
+    "Take Central Elevator to the teacher's floor level.",
+    "Follow corridor signs towards the department wing.",
+    "Locate cabin number along the main hallway."
+  ];
+
+  const todaySlots = faculty.todayTimetable || [
+    { time: "09:00 AM - 10:30 AM", activity: "Lecture Session", venue: "Lecture Hall B", status: "Completed" },
+    { time: "11:00 AM - 01:00 PM", activity: "Department Meeting", venue: "Conference Room", status: "Completed" },
+    { time: "02:00 PM - 04:00 PM", activity: "Office Hours & Student Advisory", venue: faculty.currentLocation || "Faculty Cabin", status: "Ongoing" }
+  ];
+
   return (
     <div className="details-container">
+      {/* Top Back Navigation Button */}
       <button className="back-button" onClick={onBack} type="button">
         <ArrowLeft size={18} />
-        Back to Faculty List
+        <span>Back to Teachers List</span>
       </button>
 
       {/* Hero Header Card */}
@@ -30,97 +46,105 @@ export default function FacultyDetails({ faculty, onBack }) {
         />
         <div className="details-header-info">
           <h2 className="details-name">{faculty.name}</h2>
-          <p className="details-designation">{faculty.designation}</p>
-          <div className="details-department-chip">
-            <Building2 size={14} />
-            <span>{faculty.department}</span>
+          <div className="details-header-meta">
+            <div className="details-department-chip">
+              <Building2 size={14} />
+              <span>{faculty.department}</span>
+            </div>
+            <div className="details-status-chip">
+              <span className="pulse-status-dot" />
+              <span>{faculty.locationStatus || "In Cabin (Available)"}</span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Details Grid */}
-      <div className="details-grid-layout">
-        {/* Left Column: Biography & Courses */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          {/* Bio Section */}
-          <div className="details-section-card">
-            <h3 className="section-heading">
-              <User size={18} className="section-icon" />
-              Biography & Research
-            </h3>
-            <p style={{ color: 'var(--text-secondary)', lineHeight: '1.65', fontSize: '0.95rem' }}>
-              {faculty.bio || 'No biography details currently provided.'}
-            </p>
+      {/* Section 1: Current Location & Walking Directions */}
+      <div className="details-section-card location-directions-section">
+        <div className="location-callout-box">
+          <div className="location-callout-header">
+            <MapPin size={22} className="location-icon-primary" />
+            <div>
+              <span className="location-callout-label">CURRENT LOCATION</span>
+              <h3 className="location-callout-title">{faculty.currentLocation || faculty.office}</h3>
+            </div>
           </div>
+        </div>
 
-          {/* Courses Section */}
-          <div className="details-section-card">
-            <h3 className="section-heading">
-              <BookOpen size={18} className="section-icon" />
-              Courses & Teaching
-            </h3>
-            <div className="courses-tags-wrapper">
-              {faculty.courses && faculty.courses.length > 0 ? (
-                faculty.courses.map((course, idx) => (
-                  <div key={idx} className="course-badge">
-                    {course}
+        {/* Single Line Walking Directions */}
+        <div className="single-line-directions">
+          <div className="directions-single-header">
+            <Navigation size={18} className="directions-single-icon" />
+            <span className="directions-label">Walking Directions:</span>
+          </div>
+          <p className="directions-single-text">
+            {Array.isArray(faculty.directions)
+              ? faculty.directions.join(' ➔ ')
+              : 'Main Lobby ➔ Elevator ➔ Corridor ➔ Cabin'}
+          </p>
+        </div>
+      </div>
+
+      {/* Section 2: Today's Timetable Accordion */}
+      <div className="details-section-card today-timetable-card">
+        <button
+          type="button"
+          className="timetable-accordion-trigger"
+          onClick={() => setTimetableOpen((prev) => !prev)}
+        >
+          <div className="timetable-header-left">
+            <Calendar size={20} className="section-icon" />
+            <h3 className="section-title">Today's Timetable</h3>
+          </div>
+          <ChevronDown
+            size={18}
+            className={`timetable-chevron ${timetableOpen ? 'chevron-open' : ''}`}
+          />
+        </button>
+
+        {timetableOpen && (
+          <div className="timetable-slots-list">
+            {todaySlots.map((slot, idx) => {
+              const isOngoing = slot.status === 'Ongoing';
+              const isCompleted = slot.status === 'Completed';
+
+              return (
+                <div
+                  key={idx}
+                  className={`timetable-slot-card ${isOngoing ? 'ongoing-slot' : ''}`}
+                >
+                  <div className="slot-time-col">
+                    <Clock size={16} className="slot-time-icon" />
+                    <span className="slot-time-text">{slot.time}</span>
                   </div>
-                ))
-              ) : (
-                <p style={{ color: 'var(--text-muted)' }}>No courses currently listed.</p>
-              )}
-            </div>
+
+                  <div className="slot-details-col">
+                    <h4 className="slot-activity-title">{slot.activity}</h4>
+                    <span className="slot-venue-text">📍 {slot.venue}</span>
+                  </div>
+
+                  <div className="slot-status-col">
+                    <span className={`slot-status-pill ${isOngoing ? 'pill-ongoing' : isCompleted ? 'pill-completed' : 'pill-upcoming'}`}>
+                      {isOngoing ? (
+                        <>
+                          <span className="pulse-pill-dot" /> Ongoing
+                        </>
+                      ) : isCompleted ? (
+                        <>
+                          <CheckCircle2 size={12} /> Completed
+                        </>
+                      ) : (
+                        <>
+                          <AlertCircle size={12} /> Upcoming
+                        </>
+                      )}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        </div>
-
-        {/* Right Column: Contact & Office Hours */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <div className="details-section-card">
-            <h3 className="section-heading">Contact Information</h3>
-            <div className="info-list">
-              <div className="info-item">
-                <Mail size={16} className="info-item-icon" />
-                <div className="info-item-content">
-                  <span className="info-item-label">Email</span>
-                  <span className="info-item-value">{faculty.email}</span>
-                </div>
-              </div>
-
-              <div className="info-item">
-                <Phone size={16} className="info-item-icon" />
-                <div className="info-item-content">
-                  <span className="info-item-label">Phone</span>
-                  <span className="info-item-value">{faculty.phone || 'N/A'}</span>
-                </div>
-              </div>
-
-              <div className="info-item">
-                <MapPin size={16} className="info-item-icon" />
-                <div className="info-item-content">
-                  <span className="info-item-label">Office Location</span>
-                  <span className="info-item-value">{faculty.office}</span>
-                </div>
-              </div>
-
-              <div className="info-item">
-                <Clock size={16} className="info-item-icon" />
-                <div className="info-item-content">
-                  <span className="info-item-label">Office Hours</span>
-                  <span className="info-item-value">{faculty.officeHours}</span>
-                </div>
-              </div>
-            </div>
-
-            <a
-              href={`mailto:${faculty.email}`}
-              className="contact-action-btn"
-              style={{ marginTop: '0.75rem' }}
-            >
-              <Mail size={16} />
-              Send Email
-            </a>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

@@ -26,3 +26,30 @@ export async function loginStudent(rollNumber, password) {
     token: 'mock-jwt-token-cse-2026'
   };
 }
+
+export async function loginAdmin(adminId, password) {
+  // Simulate API network request delay
+  await new Promise((resolve) => setTimeout(resolve, 300));
+
+  if (!adminId || !adminId.trim()) {
+    throw new Error('Please enter your Admin ID or Username.');
+  }
+
+  if (!password || !password.trim()) {
+    throw new Error('Please enter your password.');
+  }
+
+  const cleanAdminId = adminId.trim();
+
+  return {
+    success: true,
+    user: {
+      adminId: cleanAdminId,
+      name: `Administrator (${cleanAdminId})`,
+      department: 'CSE Administrative Portal',
+      role: 'admin'
+    },
+    token: 'mock-jwt-token-admin'
+  };
+}
+

@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Eye, EyeOff, Lock, UserCheck, AlertCircle, ArrowLeft } from 'lucide-react';
-import { loginStudent } from '../api/authAPI';
+import { Eye, EyeOff, Lock, ShieldCheck, AlertCircle } from 'lucide-react';
+import { loginAdmin } from '../api/authAPI';
 import Logo from './Logo';
 
-export default function LoginPage({ onLoginSuccess, onBackToHome }) {
-  const [rollNumber, setRollNumber] = useState('');
+export default function AdminLoginPage({ onLoginSuccess }) {
+  const [adminId, setAdminId] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -14,8 +14,8 @@ export default function LoginPage({ onLoginSuccess, onBackToHome }) {
     e.preventDefault();
     setErrorMsg('');
 
-    if (!rollNumber.trim()) {
-      setErrorMsg('Please enter your roll number.');
+    if (!adminId.trim()) {
+      setErrorMsg('Please enter your Admin ID or Username.');
       return;
     }
 
@@ -27,12 +27,12 @@ export default function LoginPage({ onLoginSuccess, onBackToHome }) {
     setIsLoading(true);
 
     try {
-      const response = await loginStudent(rollNumber, password);
+      const response = await loginAdmin(adminId, password);
       if (response && response.success) {
-        onLoginSuccess(response.student, 'student');
+        onLoginSuccess(response.user, 'admin');
       }
     } catch (err) {
-      setErrorMsg(err.message || 'Login failed. Please check your credentials.');
+      setErrorMsg(err.message || 'Admin login failed. Please check your credentials.');
     } finally {
       setIsLoading(false);
     }
@@ -41,17 +41,6 @@ export default function LoginPage({ onLoginSuccess, onBackToHome }) {
   return (
     <div className="login-wrapper">
       <div className="login-card">
-        {onBackToHome && (
-          <button
-            type="button"
-            className="login-back-btn"
-            onClick={onBackToHome}
-          >
-            <ArrowLeft size={16} />
-            <span>Back to Home</span>
-          </button>
-        )}
-
         {/* Brand Header */}
         <div className="login-brand-header">
           <Logo size="lg" />
@@ -59,7 +48,7 @@ export default function LoginPage({ onLoginSuccess, onBackToHome }) {
 
         <div className="login-header">
           <p className="login-welcome-subtitle">
-            Enter your Ecampus credentials to know where your faculty is
+            Enter your administrative credentials to access the directory management
           </p>
         </div>
 
@@ -71,24 +60,24 @@ export default function LoginPage({ onLoginSuccess, onBackToHome }) {
           </div>
         )}
 
-        {/* Login Form */}
+        {/* Admin Login Form */}
         <form onSubmit={handleSubmit} className="login-form" noValidate>
           <div className="form-group">
-            <label className="form-label" htmlFor="rollNumber">
-              Roll Number
+            <label className="form-label" htmlFor="adminId">
+              Admin ID / Username
             </label>
             <div className="input-field-wrapper">
               <div className="input-left-icon">
-                <UserCheck size={18} />
+                <ShieldCheck size={18} />
               </div>
               <input
-                id="rollNumber"
+                id="adminId"
                 type="text"
                 className="form-input"
-                placeholder="Enter your roll number"
-                value={rollNumber}
+                placeholder="Enter your admin ID"
+                value={adminId}
                 onChange={(e) => {
-                  setRollNumber(e.target.value);
+                  setAdminId(e.target.value);
                   if (errorMsg) setErrorMsg('');
                 }}
                 required
@@ -135,13 +124,13 @@ export default function LoginPage({ onLoginSuccess, onBackToHome }) {
             className="login-submit-btn"
             disabled={isLoading}
           >
-            {isLoading ? 'Signing In...' : 'Sign In'}
+            {isLoading ? 'Signing In...' : 'Sign In as Admin'}
           </button>
         </form>
 
         <div className="login-footer">
           <p className="login-footer-text">
-            Computer Science & Engineering
+            Computer Science & Engineering • Admin Portal
           </p>
         </div>
       </div>
