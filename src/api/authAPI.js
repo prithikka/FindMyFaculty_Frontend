@@ -141,3 +141,57 @@ export async function createFaculty(facultyPayload) {
   return data;
 }
 
+export async function updateFaculty(originalFacultyName, facultyPayload) {
+  const token = getStoredAdminToken();
+  if (!token) {
+    throw new Error('Admin authentication is required.');
+  }
+
+  const encodedName = encodeURIComponent(originalFacultyName);
+  const response = await fetch(`http://localhost:8000/admin/faculty/${encodedName}`, {
+    method: 'PUT',
+    headers: getAuthHeaders(token),
+    body: JSON.stringify({
+      name: facultyPayload.name,
+      cabin: facultyPayload.cabin,
+      cabin_directions: facultyPayload.cabin_directions
+    })
+  });
+
+  const data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    const message = data?.detail || 'Faculty could not be updated.';
+    throw new Error(typeof message === 'string' ? message : 'Faculty could not be updated.');
+  }
+
+  return data;
+}
+
+export async function deleteFaculty(originalFacultyName) {
+  const token = getStoredAdminToken();
+  if (!token) {
+    throw new Error('Admin authentication is required.');
+  }
+
+  const encodedName = encodeURIComponent(originalFacultyName);
+  const response = await fetch(`http://localhost:8000/admin/faculty/${encodedName}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(token)
+  });
+
+  if (!response.ok) {
+    let message = 'Faculty could not be deleted.';
+    try {
+      const data = await response.json();
+      message = data?.detail || message;
+    } catch {
+      // Ignore JSON parse failures and use the default message.
+    }
+
+    throw new Error(typeof message === 'string' ? message : 'Faculty could not be deleted.');
+  }
+
+  return true;
+}
+

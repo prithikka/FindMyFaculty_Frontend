@@ -11,6 +11,7 @@ export default function AdminFacultyManagement({ facultyList, onAddFaculty, onUp
   const [searchQuery, setSearchQuery] = useState('');
   const [draft, setDraft] = useState(emptyFacultyForm);
   const [editingId, setEditingId] = useState(null);
+  const [editingFacultyName, setEditingFacultyName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
   const [formSuccess, setFormSuccess] = useState('');
@@ -45,9 +46,11 @@ export default function AdminFacultyManagement({ facultyList, onAddFaculty, onUp
     try {
       setIsSubmitting(true);
 
-      if (editingId) {
-        await onUpdateFaculty(editingId, payload);
+      if (editingFacultyName) {
+        await onUpdateFaculty(editingFacultyName, payload);
+        setFormSuccess('Faculty updated successfully.');
         setEditingId(null);
+        setEditingFacultyName('');
       } else {
         await onAddFaculty(payload);
         setFormSuccess('Faculty created successfully.');
@@ -63,6 +66,7 @@ export default function AdminFacultyManagement({ facultyList, onAddFaculty, onUp
 
   const startEdit = (faculty) => {
     setEditingId(faculty.id);
+    setEditingFacultyName(faculty.name);
     setDraft({
       name: faculty.name,
       cabin: faculty.cabin,
@@ -72,6 +76,7 @@ export default function AdminFacultyManagement({ facultyList, onAddFaculty, onUp
 
   const resetForm = () => {
     setEditingId(null);
+    setEditingFacultyName('');
     setDraft(emptyFacultyForm);
   };
 
@@ -121,7 +126,7 @@ export default function AdminFacultyManagement({ facultyList, onAddFaculty, onUp
                       <button type="button" className="table-icon-button" onClick={() => startEdit(faculty)}>
                         <Edit3 size={14} />
                       </button>
-                      <button type="button" className="table-icon-button danger" onClick={() => onDeleteFaculty(faculty.id)}>
+                      <button type="button" className="table-icon-button danger" onClick={() => onDeleteFaculty(faculty.name)}>
                         <Trash2 size={14} />
                       </button>
                     </div>
@@ -187,7 +192,7 @@ export default function AdminFacultyManagement({ facultyList, onAddFaculty, onUp
           <div className="admin-form-actions">
             <button type="submit" className="admin-primary-btn" disabled={isSubmitting}>
               <Plus size={16} />
-              <span>{isSubmitting ? 'Adding...' : editingId ? 'Save changes' : 'Add faculty'}</span>
+              <span>{isSubmitting ? (editingFacultyName ? 'Saving...' : 'Adding...') : editingFacultyName ? 'Save changes' : 'Add faculty'}</span>
             </button>
 
             {editingId && (

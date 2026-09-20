@@ -12,7 +12,7 @@ import AdminDashboard from './components/AdminDashboard';
 import AdminFacultyManagement from './components/AdminFacultyManagement';
 import AdminTimetableManagement from './components/AdminTimetableManagement';
 import { getFacultyList as getStudentFacultyList } from './api/facultyAPI';
-import { getFacultyList as getAdminFacultyList, createFaculty } from './api/authAPI';
+import { getFacultyList as getAdminFacultyList, createFaculty, updateFaculty, deleteFaculty } from './api/authAPI';
 import { mockTimetableEntries } from './mock/adminData';
 
 export default function App() {
@@ -172,14 +172,23 @@ export default function App() {
     return createdFaculty;
   };
 
-  const handleUpdateFaculty = (facultyId, faculty) => {
-    setAdminFacultyList((prev) =>
-      prev.map((item) => (item.id === facultyId ? { ...item, ...faculty } : item))
-    );
+  const handleUpdateFaculty = async (originalFacultyName, faculty) => {
+    const updatedFaculty = await updateFaculty(originalFacultyName, faculty);
+    const refreshedFacultyList = await getAdminFacultyList();
+    setAdminFacultyList(refreshedFacultyList);
+    return updatedFaculty;
   };
 
-  const handleDeleteFaculty = (facultyId) => {
-    setAdminFacultyList((prev) => prev.filter((faculty) => faculty.id !== facultyId));
+  const handleDeleteFaculty = async (facultyName) => {
+    const confirmed = window.confirm(`Are you sure you want to delete ${facultyName}?`);
+    if (!confirmed) {
+      return false;
+    }
+
+    await deleteFaculty(facultyName);
+    const refreshedFacultyList = await getAdminFacultyList();
+    setAdminFacultyList(refreshedFacultyList);
+    return true;
   };
 
   const handleUploadTimetable = () => {
