@@ -2,17 +2,18 @@ import React, { useMemo, useState } from 'react';
 import { Edit3, Plus, Search, Trash2, UserRoundPlus } from 'lucide-react';
 
 const emptyFacultyForm = {
-  id: '',
   name: '',
   cabin: '',
-  cabin_directions: '',
-  image_url: ''
+  cabin_directions: ''
 };
 
 export default function AdminFacultyManagement({ facultyList, onAddFaculty, onUpdateFaculty, onDeleteFaculty }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [draft, setDraft] = useState(emptyFacultyForm);
   const [editingId, setEditingId] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState('');
+  const [formSuccess, setFormSuccess] = useState('');
 
   const filteredFaculty = useMemo(() => {
     if (!searchQuery.trim()) return facultyList;
@@ -24,37 +25,48 @@ export default function AdminFacultyManagement({ facultyList, onAddFaculty, onUp
     );
   }, [facultyList, searchQuery]);
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
+    setFormError('');
+    setFormSuccess('');
 
     const payload = {
       ...draft,
       name: draft.name.trim(),
       cabin: draft.cabin.trim(),
-      cabin_directions: draft.cabin_directions.trim(),
-      image_url: draft.image_url.trim()
+      cabin_directions: draft.cabin_directions.trim()
     };
 
-    if (!payload.name || !payload.cabin) return;
-
-    if (editingId) {
-      onUpdateFaculty(editingId, payload);
-      setEditingId(null);
-    } else {
-      onAddFaculty(payload);
+    if (!payload.name || !payload.cabin) {
+      setFormError('Faculty name and cabin are required.');
+      return;
     }
 
-    setDraft(emptyFacultyForm);
+    try {
+      setIsSubmitting(true);
+
+      if (editingId) {
+        await onUpdateFaculty(editingId, payload);
+        setEditingId(null);
+      } else {
+        await onAddFaculty(payload);
+        setFormSuccess('Faculty created successfully.');
+      }
+
+      setDraft(emptyFacultyForm);
+    } catch (err) {
+      setFormError(err.message || 'Unable to save faculty.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const startEdit = (faculty) => {
     setEditingId(faculty.id);
     setDraft({
-      id: faculty.id,
       name: faculty.name,
       cabin: faculty.cabin,
-      cabin_directions: faculty.cabin_directions || '',
-      image_url: faculty.image_url || ''
+      cabin_directions: faculty.cabin_directions || ''
     });
   };
 
@@ -127,6 +139,18 @@ export default function AdminFacultyManagement({ facultyList, onAddFaculty, onUp
         </div>
 
         <form onSubmit={handleSubmit} className="admin-form">
+          {formError && (
+            <div className="login-error-alert" role="alert">
+              <span>{formError}</span>
+            </div>
+          )}
+
+          {formSuccess && (
+            <div className="login-success-alert" role="status">
+              <span>{formSuccess}</span>
+            </div>
+          )}
+
           <div className="form-group">
             <label className="form-label" htmlFor="faculty-name">Faculty Name</label>
             <input
@@ -135,18 +159,6 @@ export default function AdminFacultyManagement({ facultyList, onAddFaculty, onUp
               value={draft.name}
               onChange={(event) => setDraft({ ...draft, name: event.target.value })}
               placeholder="e.g. Dr. Sarah Jenkins"
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label" htmlFor="faculty-id">Faculty ID</label>
-            <input
-              id="faculty-id"
-              className="form-input"
-              value={draft.id}
-              onChange={(event) => setDraft({ ...draft, id: event.target.value })}
-              placeholder="F01"
-              disabled={Boolean(editingId)}
             />
           </div>
 
@@ -172,21 +184,10 @@ export default function AdminFacultyManagement({ facultyList, onAddFaculty, onUp
             />
           </div>
 
-          <div className="form-group">
-            <label className="form-label" htmlFor="faculty-image">Image URL</label>
-            <input
-              id="faculty-image"
-              className="form-input"
-              value={draft.image_url}
-              onChange={(event) => setDraft({ ...draft, image_url: event.target.value })}
-              placeholder="https://example.com/faculty.jpg"
-            />
-          </div>
-
           <div className="admin-form-actions">
-            <button type="submit" className="admin-primary-btn">
+            <button type="submit" className="admin-primary-btn" disabled={isSubmitting}>
               <Plus size={16} />
-              <span>{editingId ? 'Save changes' : 'Add faculty'}</span>
+              <span>{isSubmitting ? 'Adding...' : editingId ? 'Save changes' : 'Add faculty'}</span>
             </button>
 
             {editingId && (

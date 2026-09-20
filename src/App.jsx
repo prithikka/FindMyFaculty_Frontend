@@ -11,8 +11,9 @@ import AdminLoginPage from './components/AdminLoginPage';
 import AdminDashboard from './components/AdminDashboard';
 import AdminFacultyManagement from './components/AdminFacultyManagement';
 import AdminTimetableManagement from './components/AdminTimetableManagement';
-import { getFacultyList } from './api/facultyAPI';
-import { mockAdminFaculty, mockTimetableEntries } from './mock/adminData';
+import { getFacultyList as getStudentFacultyList } from './api/facultyAPI';
+import { getFacultyList as getAdminFacultyList, createFaculty } from './api/authAPI';
+import { mockTimetableEntries } from './mock/adminData';
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -35,7 +36,7 @@ export default function App() {
     return adminToken ? 'admin' : 'student';
   });
   const [facultyList, setFacultyList] = useState([]);
-  const [adminFacultyList, setAdminFacultyList] = useState(mockAdminFaculty);
+  const [adminFacultyList, setAdminFacultyList] = useState([]);
   const [adminTimetableEntries, setAdminTimetableEntries] = useState(mockTimetableEntries);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFaculty, setSelectedFaculty] = useState(null);
@@ -62,7 +63,7 @@ export default function App() {
       async function loadData() {
         setLoading(true);
         try {
-          const data = await getFacultyList();
+          const data = await getStudentFacultyList();
           setFacultyList(data);
         } catch (err) {
           console.error('Failed to load faculty data:', err);
@@ -71,6 +72,20 @@ export default function App() {
         }
       }
       loadData();
+    }
+  }, [isAuthenticated, userRole]);
+
+  useEffect(() => {
+    if (isAuthenticated && userRole === 'admin') {
+      async function loadAdminFacultyData() {
+        try {
+          const data = await getAdminFacultyList();
+          setAdminFacultyList(data);
+        } catch (err) {
+          console.error('Failed to load admin faculty data:', err);
+        }
+      }
+      loadAdminFacultyData();
     }
   }, [isAuthenticated, userRole]);
 
@@ -151,14 +166,10 @@ export default function App() {
     }
   };
 
-  const handleAddFaculty = (faculty) => {
-    const newFaculty = {
-      ...faculty,
-      id: faculty.id || `F${String(adminFacultyList.length + 1).padStart(2, '0')}`,
-      image_url: faculty.image_url || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=600'
-    };
-
-    setAdminFacultyList((prev) => [newFaculty, ...prev]);
+  const handleAddFaculty = async (faculty) => {
+    const createdFaculty = await createFaculty(faculty);
+    setAdminFacultyList((prev) => [createdFaculty, ...prev]);
+    return createdFaculty;
   };
 
   const handleUpdateFaculty = (facultyId, faculty) => {
