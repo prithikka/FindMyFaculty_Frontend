@@ -1,8 +1,7 @@
-// Mock Student Authentication API
-// Structured for seamless integration with backend endpoint (POST /api/auth/login)
+// Student auth remains mock-only for the current app.
+// Admin auth is connected to the real FastAPI OAuth2 form login.
 
 export async function loginStudent(rollNumber, password) {
-  // Simulate API network request delay
   await new Promise((resolve) => setTimeout(resolve, 300));
 
   if (!rollNumber || !rollNumber.trim()) {
@@ -13,7 +12,6 @@ export async function loginStudent(rollNumber, password) {
     throw new Error('Please enter your password.');
   }
 
-  // Basic mock validation (accepts any non-empty roll number and password for dev flexibility)
   const cleanRoll = rollNumber.trim().toUpperCase();
 
   return {
@@ -28,9 +26,6 @@ export async function loginStudent(rollNumber, password) {
 }
 
 export async function loginAdmin(adminId, password) {
-  // Simulate API network request delay
-  await new Promise((resolve) => setTimeout(resolve, 300));
-
   if (!adminId || !adminId.trim()) {
     throw new Error('Please enter your Admin ID or Username.');
   }
@@ -40,7 +35,30 @@ export async function loginAdmin(adminId, password) {
   }
 
   const cleanAdminId = adminId.trim();
-  const mockToken = 'mock-jwt-token-admin';
+  const formBody = new URLSearchParams({
+    username: cleanAdminId,
+    password: password.trim()
+  });
+
+  const response = await fetch('http://localhost:8000/login/admin', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: formBody.toString()
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    const message = data?.detail || 'Admin login failed. Please check your credentials.';
+    throw new Error(typeof message === 'string' ? message : 'Admin login failed. Please check your credentials.');
+  }
+
+  const accessToken = data.access_token;
+  if (!accessToken) {
+    throw new Error('Admin login failed. No access token was returned.');
+  }
 
   return {
     success: true,
@@ -50,9 +68,9 @@ export async function loginAdmin(adminId, password) {
       department: 'CSE Administrative Portal',
       role: 'admin'
     },
-    token: mockToken,
-    access_token: mockToken,
-    token_type: 'bearer'
+    token: accessToken,
+    access_token: accessToken,
+    token_type: data.token_type || 'bearer'
   };
 }
 

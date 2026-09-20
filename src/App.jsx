@@ -139,7 +139,7 @@ export default function App() {
       localStorage.removeItem('findmyfaculty_student_token');
     }
 
-    setPath('/');
+    setPath('/admin');
   };
 
   const handleAdminNavigate = (view) => {
