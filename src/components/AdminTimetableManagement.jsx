@@ -1,10 +1,10 @@
 import React, { useMemo, useState } from 'react';
-import { CalendarDays, Plus, Search, Upload } from 'lucide-react';
+import { CalendarDays, Search, Upload } from 'lucide-react';
 
 const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const defaultPeriods = [1, 2, 3, 4, 5, 6, 7, 8];
 
-export default function AdminTimetableManagement({ facultyList, timetableEntries, onUploadTimetable, onAssignSlot }) {
+export default function AdminTimetableManagement({ facultyList, timetableEntries, onUploadTimetable }) {
   const [query, setQuery] = useState('');
   const [selectedFacultyId, setSelectedFacultyId] = useState(facultyList[0]?.id || '');
 
@@ -40,16 +40,6 @@ export default function AdminTimetableManagement({ facultyList, timetableEntries
 
     return { periodNo, cells };
   });
-
-  const handleQuickAssign = () => {
-    onAssignSlot({
-      facultyId: selectedFaculty?.id,
-      day: 'Mon',
-      periodNo: 1,
-      room: 'Room A-101',
-      subject: 'Faculty Meeting'
-    });
-  };
 
   return (
     <div className="admin-management-layout timetable-layout">
@@ -137,10 +127,6 @@ export default function AdminTimetableManagement({ facultyList, timetableEntries
             ))}
           </div>
 
-          <button type="button" className="admin-primary-btn" onClick={handleQuickAssign}>
-            <Plus size={16} />
-            <span>Assign quick slot</span>
-          </button>
         </div>
       </aside>
     </div>

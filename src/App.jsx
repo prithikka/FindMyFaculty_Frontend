@@ -171,15 +171,6 @@ export default function App() {
     setAdminFacultyList((prev) => prev.filter((faculty) => faculty.id !== facultyId));
   };
 
-  const handleAssignSlot = (slot) => {
-    setAdminTimetableEntries((prev) => {
-      const filtered = prev.filter(
-        (entry) => !(entry.facultyId === slot.facultyId && entry.day === slot.day && entry.periodNo === slot.periodNo)
-      );
-      return [...filtered, slot];
-    });
-  };
-
   const handleUploadTimetable = () => {
     const message = 'Mock timetable upload ready. Connect this action to /admin/upload-timetable when the FastAPI endpoint is wired in.';
     window.alert(message);
@@ -227,7 +218,6 @@ export default function App() {
               facultyList={adminFacultyList}
               timetableEntries={adminTimetableEntries}
               onUploadTimetable={handleUploadTimetable}
-              onAssignSlot={handleAssignSlot}
             />
           ) : (
             <AdminDashboard

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, Building2, CalendarClock, ShieldCheck, Users } from 'lucide-react';
+import { ArrowRight, Building2, CalendarClock, Users } from 'lucide-react';
 
 const overviewCards = [
   {
@@ -17,14 +17,6 @@ const overviewCards = [
     icon: CalendarClock,
     action: 'Manage timetable',
     target: 'timetable'
-  },
-  {
-    title: 'Access & Security',
-    description: 'Keep the administrative portal protected and monitored.',
-    stat: 'Secure',
-    icon: ShieldCheck,
-    action: 'Review access',
-    target: 'overview'
   }
 ];
 
