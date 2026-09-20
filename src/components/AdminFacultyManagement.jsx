@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { Edit3, Plus, Search, Trash2, UserRoundPlus } from 'lucide-react';
+import React, { useState } from 'react';
+import { Edit3, Plus, Trash2, UserRoundPlus } from 'lucide-react';
 
 const emptyFacultyForm = {
   name: '',
@@ -8,23 +8,12 @@ const emptyFacultyForm = {
 };
 
 export default function AdminFacultyManagement({ facultyList, onAddFaculty, onUpdateFaculty, onDeleteFaculty }) {
-  const [searchQuery, setSearchQuery] = useState('');
   const [draft, setDraft] = useState(emptyFacultyForm);
   const [editingId, setEditingId] = useState(null);
   const [editingFacultyName, setEditingFacultyName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
   const [formSuccess, setFormSuccess] = useState('');
-
-  const filteredFaculty = useMemo(() => {
-    if (!searchQuery.trim()) return facultyList;
-    const q = searchQuery.toLowerCase();
-    return facultyList.filter((faculty) =>
-      faculty.name.toLowerCase().includes(q) ||
-      faculty.cabin.toLowerCase().includes(q) ||
-      faculty.id.toLowerCase().includes(q)
-    );
-  }, [facultyList, searchQuery]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -85,15 +74,6 @@ export default function AdminFacultyManagement({ facultyList, onAddFaculty, onUp
       <section className="admin-panel-card admin-panel-card-large">
         <div className="admin-panel-header">
           <h2>Faculty Directory</h2>
-          <div className="admin-search-box">
-            <Search size={16} />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search faculty"
-            />
-          </div>
         </div>
 
         <div className="admin-table-wrapper">
@@ -108,7 +88,7 @@ export default function AdminFacultyManagement({ facultyList, onAddFaculty, onUp
               </tr>
             </thead>
             <tbody>
-              {filteredFaculty.map((faculty) => (
+              {facultyList.map((faculty) => (
                 <tr key={faculty.id}>
                   <td>
                     <div className="admin-table-identity">
