@@ -28,8 +28,10 @@ export default function AdminLoginPage({ onLoginSuccess }) {
 
     try {
       const response = await loginAdmin(adminId, password);
-      if (response && response.success) {
-        onLoginSuccess(response.user, 'admin');
+      const authToken = response?.access_token || response?.token;
+
+      if (response && (response.success || authToken)) {
+        onLoginSuccess(response.user || { adminId: adminId.trim(), role: 'admin' }, 'admin', authToken);
       }
     } catch (err) {
       setErrorMsg(err.message || 'Admin login failed. Please check your credentials.');

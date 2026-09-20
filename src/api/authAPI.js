@@ -40,6 +40,7 @@ export async function loginAdmin(adminId, password) {
   }
 
   const cleanAdminId = adminId.trim();
+  const mockToken = 'mock-jwt-token-admin';
 
   return {
     success: true,
@@ -49,7 +50,9 @@ export async function loginAdmin(adminId, password) {
       department: 'CSE Administrative Portal',
       role: 'admin'
     },
-    token: 'mock-jwt-token-admin'
+    token: mockToken,
+    access_token: mockToken,
+    token_type: 'bearer'
   };
 }
 
