@@ -29,7 +29,7 @@ export default function LoginPage({ onLoginSuccess, onBackToHome }) {
     try {
       const response = await loginStudent(rollNumber, password);
       if (response && response.success) {
-        onLoginSuccess(response.student, 'student');
+        onLoginSuccess(response.student, 'student', response.token);
       }
     } catch (err) {
       setErrorMsg(err.message || 'Login failed. Please check your credentials.');

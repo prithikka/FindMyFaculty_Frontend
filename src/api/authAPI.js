@@ -1,9 +1,7 @@
-// Student auth remains mock-only for the current app.
+// Student auth is connected to the real FastAPI OAuth2 form login.
 // Admin auth is connected to the real FastAPI OAuth2 form login.
 
 export async function loginStudent(rollNumber, password) {
-  await new Promise((resolve) => setTimeout(resolve, 300));
-
   if (!rollNumber || !rollNumber.trim()) {
     throw new Error('Please enter your roll number.');
   }
@@ -12,7 +10,41 @@ export async function loginStudent(rollNumber, password) {
     throw new Error('Please enter your password.');
   }
 
-  const cleanRoll = rollNumber.trim().toUpperCase();
+  const cleanRoll = rollNumber.trim();
+  const trimmedPassword = password.trim();
+  const formBody = new URLSearchParams({
+    username: cleanRoll,
+    password: trimmedPassword
+  });
+
+  const response = await fetch('http://localhost:8000/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: formBody.toString()
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    const detail = typeof data?.detail === 'string' ? data.detail : '';
+
+    if (response.status === 403) {
+      throw new Error(detail || 'Sorry, access is currently limited to CSE department students.');
+    }
+
+    if (response.status === 401) {
+      throw new Error(detail || 'Invalid roll number or password');
+    }
+
+    throw new Error('Login failed. Please try again.');
+  }
+
+  const accessToken = data.access_token;
+  if (!accessToken) {
+    throw new Error('Login failed. No access token was returned.');
+  }
 
   return {
     success: true,
@@ -21,7 +53,7 @@ export async function loginStudent(rollNumber, password) {
       name: `Student (${cleanRoll})`,
       department: 'Computer Science & Engineering'
     },
-    token: 'mock-jwt-token-cse-2026'
+    token: accessToken
   };
 }
 
