@@ -1,6 +1,10 @@
 import React from 'react';
+import { getFacultyAvatarUrl } from '../api/facultyAPI';
 
 export default function FacultyCard({ faculty, onClick }) {
+  const fallbackAvatar = getFacultyAvatarUrl(faculty?.name);
+  const photoSrc = faculty?.image_url || faculty?.image || fallbackAvatar;
+
   return (
     <div
       className="faculty-card"
@@ -15,10 +19,14 @@ export default function FacultyCard({ faculty, onClick }) {
     >
       <div className="faculty-card-image-wrapper">
         <img
-          src={faculty.image}
+          src={photoSrc}
           alt={faculty.name}
           className="faculty-card-image"
           loading="lazy"
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = fallbackAvatar;
+          }}
         />
       </div>
       <h3 className="faculty-card-name">{faculty.name}</h3>

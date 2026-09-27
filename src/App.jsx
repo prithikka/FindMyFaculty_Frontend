@@ -94,12 +94,25 @@ export default function App() {
       return facultyList;
     }
     const q = searchQuery.toLowerCase().trim();
-    return facultyList.filter(
-      (f) =>
-        f.name.toLowerCase().includes(q) ||
-        f.department.toLowerCase().includes(q) ||
-        f.designation.toLowerCase().includes(q)
-    );
+
+    // Filter strictly by faculty name
+    const matches = facultyList.filter((f) => {
+      const name = (f.name || '').toLowerCase();
+      return name.includes(q);
+    });
+
+    // Prioritize names starting with q or containing words starting with q
+    return matches.sort((a, b) => {
+      const aName = (a.name || '').toLowerCase();
+      const bName = (b.name || '').toLowerCase();
+
+      const aStarts = aName.startsWith(q) || aName.split(/\s+/).some((w) => w.startsWith(q));
+      const bStarts = bName.startsWith(q) || bName.split(/\s+/).some((w) => w.startsWith(q));
+
+      if (aStarts && !bStarts) return -1;
+      if (!aStarts && bStarts) return 1;
+      return aName.localeCompare(bName);
+    });
   }, [facultyList, searchQuery]);
 
   const setPath = (path) => {
@@ -136,6 +149,8 @@ export default function App() {
     if (userRole === 'admin') {
       setActiveAdminView('dashboard');
       setPath('/admin');
+    } else {
+      setPath('/');
     }
   };
 
@@ -154,7 +169,7 @@ export default function App() {
       localStorage.removeItem('findmyfaculty_student_token');
     }
 
-    setPath('/admin');
+    setPath('/');
   };
 
   const handleAdminNavigate = (view) => {
